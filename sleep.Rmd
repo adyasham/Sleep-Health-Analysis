@@ -1,0 +1,119 @@
+---
+title: "Individual Project"
+author: "Adyasha Mishra"
+date: "2024-03-02"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+HOW DOES QUALITY OF SLEEP GET AFFECTED? Checking through various factors such as Physical Activity Level, Age, Gender, Daily Steps. 
+```{r}
+library(readr)
+Sleep_Health_Lifestyle <- read_csv("~/Downloads/Business Intelligence/Sleep_Health_Project/Sleep Health Lifestyle.csv")
+
+```
+
+
+
+```{r}
+library(ggplot2)
+```
+
+
+```{r}
+
+# Create a ggplot scatterplot comparing Quality of Sleep and Physical Activity Level
+ggplot(Sleep_Health_Lifestyle, aes(x = `Quality of Sleep`, y = `Physical Activity Level`, color = factor(Gender))) +
+  geom_point() + # Add points to the plot
+  geom_smooth(method = "lm", se = FALSE) + # Add linear trend line without standard error band
+  labs(x = "Quality of Sleep", y = "Physical Activity Level", color = "Gender") + # Add axis and legend labels
+  ggtitle("Comparison of Quality of Sleep and Physical Activity by Gender") + # Add title
+  theme_minimal() # Set minimal theme
+
+```
+For males, as the physical acitvity level increases, quality of sleep increases. We see a positive correlation here. 
+For females, as the physical activity decreases, quality of sleep increases. 
+
+
+```{r}
+library(dplyr)
+avg_quality_sleep <- Sleep_Health_Lifestyle %>%
+  group_by(Age) %>%
+  summarize(avg_quality_sleep = mean(`Quality of Sleep`, na.rm = TRUE))
+
+# Plot the average quality of sleep against age with a trend line
+ggplot(avg_quality_sleep, aes(x = Age, y = avg_quality_sleep)) +
+  geom_point(color = "#8da0cb", size = 3) +
+  geom_smooth(method = "lm", se = FALSE, color = "red") + # Add trend line
+  labs(x = "Age", y = "Average Quality of Sleep") +
+  ggtitle("Average Quality of Sleep Across Age Groups") +
+  theme_minimal()
+
+
+```
+We can interpret that average quality of sleep increases as Age increases
+
+
+```{r}
+ggplot(Sleep_Health_Lifestyle, aes(x = `Daily Steps`, y = `Quality of Sleep`, size = `Quality of Sleep`, color = `Physical Activity Level`)) +
+  geom_point(alpha = 0.7) + # Add points to the plot with transparency
+  scale_size_continuous(range = c(3, 10)) + # Set the range of bubble sizes
+  labs(x = "Daily Steps", y = "Quality of Sleep", color = "Physical Activity Level", size = "Quality of Sleep") + # Add axis labels
+  ggtitle("Relationship between Daily Steps, Quality of Sleep, and Physical Activity Level") + # Add title
+  theme_minimal() + # Set minimal theme
+  scale_color_gradient(low = "blue", high = "red") # Set color gradient
+```
+As Physical Activity increases with daily steps, we see that the quality of sleep is better and increases significantly. 
+
+
+
+```{r}
+# Load the required libraries
+library(rpart)
+library(rpart.plot)
+
+# Check the structure of your dataset
+str(Sleep_Health_Lifestyle)
+
+# Create and train the Decision Tree model
+tree_model <- rpart(`Quality of Sleep` ~ `Physical Activity Level`, data = Sleep_Health_Lifestyle)
+print(tree_model)
+
+# Summary of the model
+summary(tree_model)
+
+# Plot the decision tree
+rpart.plot(tree_model, type = 4, extra = 1)
+
+
+
+# Make predictions on the training data
+predictions <- predict(tree_model, Sleep_Health_Lifestyle)
+
+# Compare predictions with actual values
+comparison <- data.frame(Actual = Sleep_Health_Lifestyle$`Quality of Sleep`, Predicted = predictions)
+head(comparison)
+
+
+
+
+```
+The decision tree suggests that higher levels of physical activity are generally associated with better quality of sleep.
+
+If "Physical Activity Level" < 52.5:
+Further splits based on different thresholds:
+< 31: Predicted quality of sleep ≈ 7.35.
+31 - 41: Predicted quality of sleep ≈ 6.52.
+≥ 41: Predicted quality of sleep ≈ 5.25.
+If "Physical Activity Level" ≥ 52.5:
+Further splits:
+< 87.5: Predicted quality of sleep ≈ 7.95.
+≥ 87.5: Predicted quality of sleep ≈ 7.07.
+
